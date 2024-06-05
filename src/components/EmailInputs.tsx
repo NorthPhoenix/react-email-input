@@ -21,6 +21,7 @@ type EmailChipRequired =
 type EmailInputProps = {
   limit?: number;
   limitMessage?: string;
+  inputId?: string;
   initialEmails?: string[];
   deleteButton?: React.ReactElement;
   placeholder?: string;
@@ -34,9 +35,10 @@ const emailChipsToEmailData = (chips: EmailChip[]): EmailData[] => {
   });
 };
 
-const EmailInput = ({
+const EmailChips = ({
   deleteButton,
   initialEmails,
+  inputId,
   limit,
   limitMessage,
   onChipChange,
@@ -121,10 +123,10 @@ const EmailInput = ({
   return (
     <div className="w-full">
       <div
-        className="flex min-h-10 w-full flex-row flex-wrap items-center gap-2 rounded-md border border-gray-300 px-2 py-1 transition-all focus-within:ring-1 focus-within:ring-blue-500"
+        className="focus-within:ring-primary flex w-full flex-row flex-wrap items-center gap-2 rounded-md border border-gray-300 px-2 py-1 transition-all focus-within:ring-1"
         onClick={() => inputRef.current?.focus()}
       >
-        <EmailChipsList
+        <MemoizedEmailChipsList
           chips={chips}
           deleteButton={deleteButton}
           onChipClick={(event, chip) => {
@@ -135,9 +137,11 @@ const EmailInput = ({
         {!disableInput && (
           <input
             type="text"
-            className="-mt-[0.125rem] flex-grow focus-visible:outline-none"
+            id={inputId}
+            className="min-h-[2rem] flex-grow border-none p-0 outline-none ring-0 focus:border-none focus:outline-none focus:ring-0 focus-visible:border-none focus-visible:outline-none focus-visible:ring-0"
             placeholder={placeholder}
             onKeyDown={handleKeyDown}
+            onBlur={updateChips}
             ref={inputRef}
           />
         )}
@@ -155,49 +159,57 @@ type EmailChipsListProps = {
   deleteButton?: React.ReactElement;
   onChipClick: (event: React.MouseEvent, chip: EmailChip) => void;
 };
-const EmailChipsList = memo(
-  ({ chips, onChipClick, deleteButton }: EmailChipsListProps) => {
-    return chips.map((chip) => (
-      <span
-        className={classNames(
-          "inline-flex items-center rounded-full border border-gray-200 px-2 py-1 text-sm font-medium text-gray-800",
-          chip.valid
-            ? "border-gray-200 bg-gray-100"
-            : "border-red-200 bg-red-100",
-        )}
-        key={chip.key}
-      >
-        <span>{chip.email}</span>
-        {deleteButton ? (
-          <ChipDeleteButton
-            button={deleteButton}
-            chip={chip}
-            onClick={onChipClick}
-          />
-        ) : (
-          <button type="button" onClick={(e) => onChipClick(e, chip)}>
-            <svg
-              className="h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              aria-hidden="true"
-              data-slot="icon"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6 18 18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        )}
-      </span>
-    ));
-  },
-);
+const EmailChipsList = ({
+  chips,
+  onChipClick,
+  deleteButton,
+}: EmailChipsListProps) => {
+  return (
+    <>
+      {chips.map((chip) => (
+        <span
+          className={classNames(
+            "inline-flex items-center rounded-full border border-gray-200 px-2 py-1 text-sm font-medium text-gray-800",
+            chip.valid
+              ? "border-gray-200 bg-gray-100"
+              : "border-red-200 bg-red-100",
+          )}
+          key={chip.key}
+        >
+          <span className="max-w-[30ch] truncate">{chip.email}</span>
+          {deleteButton ? (
+            <ChipDeleteButton
+              button={deleteButton}
+              chip={chip}
+              onClick={onChipClick}
+            />
+          ) : (
+            <button type="button" onClick={(e) => onChipClick(e, chip)}>
+              <svg
+                className="h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                aria-hidden="true"
+                data-slot="icon"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18 18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
+        </span>
+      ))}
+    </>
+  );
+};
+
+const MemoizedEmailChipsList = memo(EmailChipsList);
 
 type ChipDeleteButtonProps = {
   button: React.ReactElement;
@@ -212,4 +224,4 @@ const ChipDeleteButton = ({ button, chip, onClick }: ChipDeleteButtonProps) => {
   return DeleteButton;
 };
 
-export default EmailInput;
+export default EmailChips;
